@@ -18,6 +18,7 @@ obsidian-vault/
 └── docs/                  # ドキュメント
     ├── setup-guide.md     # 初期設定ガイド
     ├── ios-setup-guide.md # iOSセットアップガイド
+    ├── github-actions-guide.md # GitHub Actions解説
     └── usage-guide.md     # 運用ガイド
 ```
 
@@ -41,4 +42,5 @@ obsidian-vault/
 
 - [初期設定ガイド](docs/setup-guide.md) - Gmail・GitHub Secrets・PATの設定
 - [iOSセットアップガイド](docs/ios-setup-guide.md) - iPhoneでの詳細セットアップ手順
+- [GitHub Actions解説](docs/github-actions-guide.md) - 自動送信の仕組みと設定手順
 - [運用ガイド](docs/usage-guide.md) - 日報の書き方・Obsidian設定
