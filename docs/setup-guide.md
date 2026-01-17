@@ -42,7 +42,9 @@ iOSのObsidian Gitプラグインで認証するために必要です。
 |------|--------|
 | Note | `Obsidian Git` など分かりやすい名前 |
 | Expiration | 「No expiration」または任意の期限 |
-| Scopes | `repo`（フルアクセス）にチェック |
+| Scopes | `repo`（フルアクセス）と `workflow` の両方にチェック |
+
+> **重要**: `workflow`スコープがないと、GitHub Actionsのワークフローファイルをpushできません。
 
 6. 「Generate token」をクリック
 7. 表示されたトークン（`ghp_`で始まる文字列）をコピー
