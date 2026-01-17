@@ -19,10 +19,10 @@ Obsidianで日報を作成し、自動送信するまでの日々の運用方法
 
 ### 1.2 日報テンプレート
 
-`templates/daily-template.md` を使用します。
+`templates/daily-template.md` を使用します（Templater構文）。
 
 ```markdown
-# YYYY-MM-DD 日報
+# <% tp.date.now("YYYY-MM-DD") %> 日報
 
 ## やったこと
 -
@@ -37,26 +37,100 @@ Obsidianで日報を作成し、自動送信するまでの日々の運用方法
 
 ```
 
+#### Templater構文について
+
+| 構文 | 出力例 | 説明 |
+|------|--------|------|
+| `<% tp.date.now("YYYY-MM-DD") %>` | `2026-01-17` | 今日の日付 |
+| `<% tp.date.now("YYYY年MM月DD日") %>` | `2026年01月17日` | 日本語形式 |
+| `<% tp.date.now("dddd") %>` | `Friday` | 曜日（英語） |
+| `<% tp.file.title %>` | ファイル名 | 現在のファイル名 |
+| `<% tp.file.creation_date("YYYY-MM-DD") %>` | `2026-01-17` | ファイル作成日 |
+
+テンプレート適用時に、これらの構文が実際の値に置き換わります。
+
 ## 2. Obsidianの推奨設定
 
 ### 2.1 Templaterプラグイン（推奨）
 
 テンプレートから自動的に日報を作成できます。
 
-1. 設定 → コミュニティプラグイン → Templater をインストール
-2. Templaterの設定:
-   - Template folder location: `templates`
-   - 日付形式を設定
+#### インストール
+
+1. 設定（歯車アイコン）を開く
+2. 「Community plugins」をタップ
+3. 「Browse」をタップ
+4. 検索欄に「Templater」と入力
+5. 「Templater」（作者: SilentVoid）をタップ
+6. 「Install」→「Enable」をタップ
+
+#### Templater の設定
+
+設定 → Community plugins → Templater で以下を設定:
+
+| 設定項目 | 値 | 説明 |
+|---------|-----|------|
+| Template folder location | `templates` | テンプレートの保存場所 |
+| Trigger Templater on new file creation | オン | 新規ファイル作成時に自動適用 |
+
+#### フォルダテンプレートの設定（自動適用）
+
+特定のフォルダに作成したファイルに自動でテンプレートを適用できます。
+
+1. Templater設定画面を下にスクロール
+2. 「Folder Templates」セクションを探す
+3. 「Add New」をタップ
+4. 以下を設定:
+
+| 項目 | 値 |
+|------|-----|
+| Folder | `10_daily` |
+| Template | `templates/daily-template.md` |
+
+→ `10_daily/`フォルダ内でファイルを作成すると、自動的に日報テンプレートが適用されます。
+
+#### 日報の作成方法
+
+**方法1: フォルダから作成（推奨）**
+1. 左サイドバーで `10_daily/2026/01/` フォルダを開く
+2. フォルダを長押し（iOS）または右クリック（Windows）
+3. 「New note」を選択
+4. ファイル名を入力: `2026-01-17-日報`
+5. テンプレートが自動適用される
+
+**方法2: コマンドパレットから作成**
+1. コマンドパレットを開く（下にスワイプ/Ctrl+P）
+2. 「Templater: Create new note from template」を選択
+3. `daily-template` を選択
+4. 保存先とファイル名を指定
 
 ### 2.2 Daily Notesプラグイン（代替）
 
-Obsidian標準のDaily Notesでも運用可能です。
+Obsidian標準のDaily Notesでも運用可能です。Templaterと併用することで、より便利になります。
 
-1. 設定 → コアプラグイン → Daily Notes を有効化
-2. 設定:
-   - New file location: `10_daily/{{date:YYYY}}/{{date:MM}}`
-   - Template file location: `templates/daily-template`
-   - Date format: `YYYY-MM-DD-日報`
+#### 有効化
+
+1. 設定 → Core plugins（コアプラグイン）
+2. 「Daily notes」をオンにする
+
+#### Daily Notes の設定
+
+設定 → Core plugins → Daily notes で以下を設定:
+
+| 設定項目 | 値 | 説明 |
+|---------|-----|------|
+| Date format | `YYYY-MM-DD-日報` | ファイル名の形式 |
+| New file location | `10_daily/{{date:YYYY}}/{{date:MM}}` | 保存先フォルダ |
+| Template file location | `templates/daily-template` | 使用するテンプレート |
+| Open daily note on startup | お好みで | 起動時に今日の日報を開く |
+
+#### 日報の作成方法
+
+1. コマンドパレットを開く（下にスワイプ/Ctrl+P）
+2. 「Daily notes: Open today's daily note」を選択
+3. 今日の日報が自動作成される
+
+または、左サイドバーのカレンダーアイコン（Daily notes）をタップ
 
 ### 2.3 Obsidian Gitプラグイン（Windows/iOS共通）
 

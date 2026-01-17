@@ -17,14 +17,20 @@ obsidian-vault/
 │   └── daily-template.md
 └── docs/                  # ドキュメント
     ├── setup-guide.md     # 初期設定ガイド
+    ├── ios-setup-guide.md # iOSセットアップガイド
     └── usage-guide.md     # 運用ガイド
 ```
 
 ## クイックスタート
 
-1. [初期設定ガイド](docs/setup-guide.md) を読んでGitHubの設定を行う
+### Windows
+1. [初期設定ガイド](docs/setup-guide.md) を読んでGitHub/Gmailの設定を行う
 2. [運用ガイド](docs/usage-guide.md) を読んで日報の書き方を確認
 3. Obsidianで日報を作成し、GitHubにpush
+
+### iPhone
+1. [初期設定ガイド](docs/setup-guide.md) でPATを取得
+2. [iOSセットアップガイド](docs/ios-setup-guide.md) に従ってセットアップ
 
 ## 自動送信スケジュール
 
@@ -33,5 +39,6 @@ obsidian-vault/
 
 ## ドキュメント
 
-- [初期設定ガイド](docs/setup-guide.md) - Gmail・GitHub Secretsの設定
+- [初期設定ガイド](docs/setup-guide.md) - Gmail・GitHub Secrets・PATの設定
+- [iOSセットアップガイド](docs/ios-setup-guide.md) - iPhoneでの詳細セットアップ手順
 - [運用ガイド](docs/usage-guide.md) - 日報の書き方・Obsidian設定
