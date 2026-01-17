@@ -1,0 +1,91 @@
+name: 日報メール送信
+
+on:
+  schedule:
+    # 毎日 23:00 JST（= 14:00 UTC）に実行
+    - cron: '0 14 * * *'
+  workflow_dispatch:
+    # 手動実行も可能にする
+
+env:
+  TZ: Asia/Tokyo
+
+jobs:
+  send-daily-report:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ① リポジトリをチェックアウト
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ② 当日の日付（JST）と日報ファイルパスを生成
+      - name: Set date and file path
+        id: date
+        run: |
+          YEAR=$(date '+%Y')
+          MONTH=$(date '+%m')
+          DATE=$(date '+%Y-%m-%d')
+          FILE_PATH="10_daily/${YEAR}/${MONTH}/${DATE}-日報.md"
+
+          echo "year=${YEAR}" >> $GITHUB_OUTPUT
+          echo "month=${MONTH}" >> $GITHUB_OUTPUT
+          echo "date=${DATE}" >> $GITHUB_OUTPUT
+          echo "file_path=${FILE_PATH}" >> $GITHUB_OUTPUT
+
+          echo "📅 対象日付: ${DATE}"
+          echo "📄 ファイルパス: ${FILE_PATH}"
+
+      # ③ 日報ファイルの存在チェック
+      - name: Check if daily report exists
+        id: check
+        run: |
+          FILE_PATH="${{ steps.date.outputs.file_path }}"
+
+          if [ -f "$FILE_PATH" ]; then
+            echo "✅ 日報ファイルが見つかりました: ${FILE_PATH}"
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "❌ 日報ファイルが見つかりません: ${FILE_PATH}"
+            echo "exists=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+      # ④ ファイル内容を読み込む
+      - name: Read daily report content
+        if: steps.check.outputs.exists == 'true'
+        id: read-file
+        run: |
+          FILE_PATH="${{ steps.date.outputs.file_path }}"
+
+          # ファイル内容を環境変数に設定（改行対応）
+          {
+            echo 'content<<EOF'
+            cat "$FILE_PATH"
+            echo 'EOF'
+          } >> $GITHUB_OUTPUT
+
+      # ⑤ メール送信
+      - name: Send email
+        if: steps.check.outputs.exists == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 587
+          secure: true
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: "[日報] ${{ steps.date.outputs.date }}"
+          to: ${{ secrets.MAIL_TO }}
+          from: ${{ secrets.GMAIL_USER }}
+          body: |
+            本日の日報をお送りします。
+
+            ─────────────────────────────
+
+            ${{ steps.read-file.outputs.content }}
+
+            ─────────────────────────────
+
+            ※ このメールは GitHub Actions により自動送信されています。
+          content_type: text/plain
