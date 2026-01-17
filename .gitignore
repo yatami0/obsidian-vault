@@ -1,0 +1,21 @@
+# Obsidian - プラットフォーム固有（競合防止）
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+.obsidian/cache
+.obsidian/graph.json
+.obsidian/.trash/
+.trash/
+
+# OS固有
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# 一時ファイル
+*.tmp
+*.bak
+*.swp
+*~
