@@ -26,7 +26,7 @@ jobs:
           YEAR=$(date '+%Y')
           MONTH=$(date '+%m')
           DATE=$(date '+%Y-%m-%d')
-          FILE_PATH="10_daily/${YEAR}/${MONTH}/${DATE}-日報.md"
+          FILE_PATH="10_daily/${YEAR}/${MONTH}/${DATE}.md"
 
           echo "year=${YEAR}" >> $GITHUB_OUTPUT
           echo "month=${MONTH}" >> $GITHUB_OUTPUT
