@@ -88,9 +88,17 @@ Windows/iOS両方で同じ設定を行います。
 | `MAIL_TO` | recipient@example.com | 送信先メールアドレス |
 
 **複数の送信先に送る場合:**
+
+カンマ区切りで複数指定できます。**各送信先に個別送信される**ため、他の受信者のアドレスは見えません。
+
 ```
-recipient1@example.com,recipient2@example.com
+recipient1@example.com,recipient2@example.com,recipient3@example.com
 ```
+
+送信の挙動:
+- 各受信者に1通ずつ個別にメールが送信されます
+- 他の受信者のメールアドレスは一切見えません（完全に独立した送信）
+- 1件の送信が失敗しても、他の送信先への送信は継続されます
 
 ## 4. iOSでのVault設定
 

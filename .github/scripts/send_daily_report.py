@@ -49,12 +49,12 @@ def send_email(
     body: str
 ) -> None:
     """
-    Gmail経由でメールを送信する
+    Gmail経由でメールを送信する（1通のみ）
 
     Args:
         gmail_user: 送信元Gmailアドレス
         gmail_password: Gmailアプリパスワード
-        to_email: 送信先メールアドレス
+        to_email: 送信先メールアドレス（1件）
         subject: メールの件名
         body: メール本文
 
@@ -72,32 +72,77 @@ def send_email(
 
     try:
         # SMTPサーバーに接続
-        print(f"📧 Gmail SMTPサーバーに接続中...")
         with smtplib.SMTP('smtp.gmail.com', 587) as server:
             server.set_debuglevel(0)  # デバッグ出力を無効化
             server.starttls()  # TLS暗号化を開始
-
-            print(f"🔐 認証中...")
             server.login(gmail_user, gmail_password)
-
-            print(f"📤 メール送信中: {to_email}")
             server.send_message(msg)
 
-        print(f"✅ メール送信完了")
-        print(f"   送信元: {gmail_user}")
-        print(f"   送信先: {to_email}")
-        print(f"   件名: {subject}")
+        print(f"   ✅ 送信完了: {to_email}")
 
     except smtplib.SMTPAuthenticationError as e:
-        print(f"❌ 認証エラー: Gmail のユーザー名またはアプリパスワードが正しくありません", file=sys.stderr)
-        print(f"   詳細: {e}", file=sys.stderr)
+        print(f"   ❌ 認証エラー: {to_email}", file=sys.stderr)
+        print(f"      詳細: {e}", file=sys.stderr)
         raise
     except smtplib.SMTPException as e:
-        print(f"❌ メール送信エラー: {e}", file=sys.stderr)
+        print(f"   ❌ 送信エラー: {to_email}", file=sys.stderr)
+        print(f"      詳細: {e}", file=sys.stderr)
         raise
     except Exception as e:
-        print(f"❌ 予期しないエラー: {e}", file=sys.stderr)
+        print(f"   ❌ 予期しないエラー: {to_email}", file=sys.stderr)
+        print(f"      詳細: {e}", file=sys.stderr)
         raise
+
+
+def send_emails_to_multiple_recipients(
+    gmail_user: str,
+    gmail_password: str,
+    to_emails: list[str],
+    subject: str,
+    body: str
+) -> tuple[int, int]:
+    """
+    複数の送信先に個別にメールを送信する
+
+    Args:
+        gmail_user: 送信元Gmailアドレス
+        gmail_password: Gmailアプリパスワード
+        to_emails: 送信先メールアドレスのリスト
+        subject: メールの件名
+        body: メール本文
+
+    Returns:
+        (成功数, 失敗数) のタプル
+    """
+    print(f"📧 Gmail SMTPサーバーに接続準備...")
+    print(f"📤 {len(to_emails)}件の送信先に個別送信します")
+    print()
+
+    success_count = 0
+    failure_count = 0
+    failed_emails = []
+
+    for i, to_email in enumerate(to_emails, 1):
+        print(f"[{i}/{len(to_emails)}] 送信中: {to_email}")
+        try:
+            send_email(gmail_user, gmail_password, to_email, subject, body)
+            success_count += 1
+        except Exception as e:
+            failure_count += 1
+            failed_emails.append(to_email)
+            print(f"   ⚠️ スキップして次へ進みます")
+
+    print()
+    print("=" * 60)
+    print(f"📊 送信結果")
+    print("=" * 60)
+    print(f"✅ 成功: {success_count}件")
+    if failure_count > 0:
+        print(f"❌ 失敗: {failure_count}件")
+        print(f"   失敗した送信先: {', '.join(failed_emails)}")
+    print()
+
+    return success_count, failure_count
 
 
 def main():
@@ -106,7 +151,7 @@ def main():
         # 環境変数の取得
         gmail_user = os.environ.get('GMAIL_USER')
         gmail_password = os.environ.get('GMAIL_APP_PASSWORD')
-        to_email = os.environ.get('MAIL_TO')
+        to_emails_str = os.environ.get('MAIL_TO')
         file_path = os.environ.get('FILE_PATH')
         date = os.environ.get('DATE')
 
@@ -116,7 +161,7 @@ def main():
             missing_vars.append('GMAIL_USER')
         if not gmail_password:
             missing_vars.append('GMAIL_APP_PASSWORD')
-        if not to_email:
+        if not to_emails_str:
             missing_vars.append('MAIL_TO')
         if not file_path:
             missing_vars.append('FILE_PATH')
@@ -127,11 +172,21 @@ def main():
             print(f"❌ 必要な環境変数が設定されていません: {', '.join(missing_vars)}", file=sys.stderr)
             sys.exit(1)
 
+        # 送信先をカンマ区切りで分割（空白を除去）
+        to_emails = [email.strip() for email in to_emails_str.split(',') if email.strip()]
+
+        if not to_emails:
+            print(f"❌ MAIL_TO に有効なメールアドレスが設定されていません", file=sys.stderr)
+            sys.exit(1)
+
         print("=" * 60)
         print("📮 日報メール送信スクリプト開始")
         print("=" * 60)
         print(f"📅 対象日付: {date}")
         print(f"📄 ファイルパス: {file_path}")
+        print(f"📬 送信先: {len(to_emails)}件")
+        for i, email in enumerate(to_emails, 1):
+            print(f"   [{i}] {email}")
         print()
 
         # 日報ファイルの読み込み
@@ -139,7 +194,7 @@ def main():
         print()
 
         # メール本文の作成
-        email_body = f"""本日の日報をお送りします。
+        email_body = f"""本日の日報です。
 
 ─────────────────────────────
 
@@ -150,20 +205,26 @@ def main():
 ※ このメールは GitHub Actions により自動送信されています。
 """
 
-        # メールの送信
+        # 複数の送信先に個別送信
         subject = f"[日報] {date}"
-        send_email(
+        success_count, failure_count = send_emails_to_multiple_recipients(
             gmail_user=gmail_user,
             gmail_password=gmail_password,
-            to_email=to_email,
+            to_emails=to_emails,
             subject=subject,
             body=email_body
         )
 
-        print()
         print("=" * 60)
-        print("🎉 処理が正常に完了しました")
+        if failure_count == 0:
+            print("🎉 処理が正常に完了しました")
+        else:
+            print(f"⚠️ 処理が完了しましたが、{failure_count}件の送信に失敗しました")
         print("=" * 60)
+
+        # 失敗があった場合はエラーコードを返す
+        if failure_count > 0:
+            sys.exit(1)
 
     except FileNotFoundError as e:
         print(f"\n❌ エラー: {e}", file=sys.stderr)
