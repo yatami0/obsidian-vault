@@ -13,7 +13,7 @@ obsidian-vault/
 │       └── send_daily_report.py  # メール送信スクリプト
 ├── 10_daily/                   # 日報フォルダ
 │   └── YYYY/MM/                # 年/月で整理
-│       └── YYYY-MM-DD-日報.md
+│       └── YYYY-MM-DD.md
 ├── 20_poem/                    # ポエム・雑記
 ├── 30_tech-memo/               # 技術メモ
 ├── templates/                  # テンプレート
@@ -42,8 +42,8 @@ obsidian-vault/
 
 ### 送信対象
 - **当日の日付のファイル** が存在する場合のみ送信
-- ファイルパス: `10_daily/YYYY/MM/YYYY-MM-DD-日報.md`
-- 例: 2026年1月26日 → `10_daily/2026/01/2026-01-26-日報.md`
+- ファイルパス: `10_daily/YYYY/MM/YYYY-MM-DD.md`
+- 例: 2026年1月26日 → `10_daily/2026/01/2026-01-26.md`
 
 ### 送信方法
 - Python標準ライブラリ（smtplib）で直接Gmail SMTP経由で送信
