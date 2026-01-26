@@ -6,19 +6,22 @@
 
 ```
 obsidian-vault/
-├── .github/workflows/     # GitHub Actions設定
-│   └── send-daily-report.yml
-├── 10_daily/              # 日報フォルダ
-│   └── YYYY/MM/           # 年/月で整理
+├── .github/
+│   ├── workflows/              # GitHub Actions設定
+│   │   └── send-daily-report.yml
+│   └── scripts/                # 自動化スクリプト
+│       └── send_daily_report.py  # メール送信スクリプト
+├── 10_daily/                   # 日報フォルダ
+│   └── YYYY/MM/                # 年/月で整理
 │       └── YYYY-MM-DD-日報.md
-├── 20_poem/               # ポエム・雑記
-├── 30_tech-memo/          # 技術メモ
-├── templates/             # テンプレート
+├── 20_poem/                    # ポエム・雑記
+├── 30_tech-memo/               # 技術メモ
+├── templates/                  # テンプレート
 │   └── daily-template.md
-└── docs/                  # ドキュメント
-    ├── setup-guide.md     # 初期設定ガイド
-    ├── ios-setup-guide.md # iOSセットアップガイド
-    └── usage-guide.md     # 運用ガイド
+└── docs/                       # ドキュメント
+    ├── setup-guide.md          # 初期設定ガイド
+    ├── ios-setup-guide.md      # iOSセットアップガイド
+    └── usage-guide.md          # 運用ガイド
 ```
 
 ## クイックスタート
@@ -32,10 +35,22 @@ obsidian-vault/
 1. [初期設定ガイド](docs/setup-guide.md) でPATを取得
 2. [iOSセットアップガイド](docs/ios-setup-guide.md) に従ってセットアップ
 
-## 自動送信スケジュール
+## 自動送信の仕様
 
-- 毎日 23:00（JST）に当日の日報がメール送信されます
-- 日報ファイルがない日はスキップされます
+### スケジュール
+- 毎日 23:00（JST）に自動実行されます
+
+### 送信対象
+- **当日の日付のファイル** が存在する場合のみ送信
+- ファイルパス: `10_daily/YYYY/MM/YYYY-MM-DD-日報.md`
+- 例: 2026年1月26日 → `10_daily/2026/01/2026-01-26-日報.md`
+
+### 送信方法
+- Python標準ライブラリ（smtplib）で直接Gmail SMTP経由で送信
+- サードパーティアクションに依存しない独自実装
+
+### スキップ条件
+- 日報ファイルが存在しない場合、自動的にスキップ（エラーとして扱う）
 
 ## ドキュメント
 

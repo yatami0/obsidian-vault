@@ -51,41 +51,21 @@ jobs:
             exit 1
           fi
 
-      # ④ ファイル内容を読み込む
-      - name: Read daily report content
+      # ④ Python 環境のセットアップ
+      - name: Set up Python
         if: steps.check.outputs.exists == 'true'
-        id: read-file
-        run: |
-          FILE_PATH="${{ steps.date.outputs.file_path }}"
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-          # ファイル内容を環境変数に設定（改行対応）
-          {
-            echo 'content<<EOF'
-            cat "$FILE_PATH"
-            echo 'EOF'
-          } >> $GITHUB_OUTPUT
-
-      # ⑤ メール送信
+      # ⑤ メール送信（Pythonスクリプトで直接送信）
       - name: Send email
         if: steps.check.outputs.exists == 'true'
-        uses: dawidd6/action-send-mail@v3
-        with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          secure: true
-          username: ${{ secrets.GMAIL_USER }}
-          password: ${{ secrets.GMAIL_APP_PASSWORD }}
-          subject: "[日報] ${{ steps.date.outputs.date }}"
-          to: ${{ secrets.MAIL_TO }}
-          from: ${{ secrets.GMAIL_USER }}
-          body: |
-            本日の日報をお送りします。
-
-            ─────────────────────────────
-
-            ${{ steps.read-file.outputs.content }}
-
-            ─────────────────────────────
-
-            ※ このメールは GitHub Actions により自動送信されています。
-          content_type: text/plain
+        env:
+          GMAIL_USER: ${{ secrets.GMAIL_USER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+          FILE_PATH: ${{ steps.date.outputs.file_path }}
+          DATE: ${{ steps.date.outputs.date }}
+        run: |
+          python .github/scripts/send_daily_report.py
