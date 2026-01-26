@@ -7,6 +7,10 @@ on:
   workflow_dispatch:
     # 手動実行も可能にする
 
+permissions:
+  id-token: write  # OIDC トークン取得に必要
+  contents: read
+
 env:
   TZ: Asia/Tokyo
 
@@ -65,27 +69,36 @@ jobs:
             echo 'EOF'
           } >> $GITHUB_OUTPUT
 
-      # ⑤ メール送信
-      - name: Send email
+      # ⑤ AWS認証（OIDC）
+      - name: Configure AWS credentials
         if: steps.check.outputs.exists == 'true'
-        uses: dawidd6/action-send-mail@v3
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          server_address: smtp.gmail.com
-          server_port: 587
-          secure: true
-          username: ${{ secrets.GMAIL_USER }}
-          password: ${{ secrets.GMAIL_APP_PASSWORD }}
-          subject: "[日報] ${{ steps.date.outputs.date }}"
-          to: ${{ secrets.MAIL_TO }}
-          from: ${{ secrets.GMAIL_USER }}
-          body: |
-            本日の日報をお送りします。
+          role-to-assume: arn:aws:iam::050752605572:role/github-actions-ses-role
+          aws-region: ap-northeast-1
 
-            ─────────────────────────────
+      # ⑥ AWS SESでメール送信
+      - name: Send email via SES
+        if: steps.check.outputs.exists == 'true'
+        env:
+          EMAIL_CONTENT: ${{ steps.read-file.outputs.content }}
+          EMAIL_DATE: ${{ steps.date.outputs.date }}
+        run: |
+          # メール本文を作成
+          BODY="本日の日報
 
-            ${{ steps.read-file.outputs.content }}
+          ─────────────────────────────
 
-            ─────────────────────────────
+          ${EMAIL_CONTENT}
 
-            ※ このメールは GitHub Actions により自動送信されています。
-          content_type: text/plain
+          ─────────────────────────────
+
+          ※ このメールは GitHub Actions により自動送信されています。"
+
+          # AWS SESでメール送信
+          aws ses send-email \
+            --from "takumik9823@gmail.com" \
+            --destination "ToAddresses=takumik9823@gmail.com" \
+            --message "Subject={Data='[日報] ${EMAIL_DATE}',Charset='UTF-8'},Body={Text={Data='${BODY}',Charset='UTF-8'}}"
+
+          echo "✅ メール送信完了"
